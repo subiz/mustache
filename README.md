@@ -16,6 +16,7 @@
 
 I forked [hoisie/mustache](https://github.com/hoisie/mustache) because it does not appear to be maintained, and I wanted to add the following functionality:
 
+- Dependencies free
 - Update the API to follow the idiomatic Go convention of returning errors (this is a breaking change)
 - Add option to treat missing variables as errors
 
