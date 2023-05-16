@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"regexp"
 	"io"
 	"reflect"
 	"strconv"
@@ -355,13 +356,6 @@ func (tmpl *Template) parseSection(section *sectionElement) error {
 				return newErrorWithReason(tmpl.curline, ErrInterleavedClosingTag, name)
 			}
 			return nil
-		case '>':
-			name := strings.TrimSpace(tag[1:])
-			partial, err := tmpl.parsePartial(name, textResult.padding)
-			if err != nil {
-				return err
-			}
-			section.elems = append(section.elems, partial)
 		case '=':
 			if tag[len(tag)-1] != '=' {
 				return newError(tmpl.curline, ErrInvalidMetaTag)
@@ -426,13 +420,6 @@ func (tmpl *Template) parse() error {
 			tmpl.elems = append(tmpl.elems, &se)
 		case '/':
 			return newError(tmpl.curline, ErrUnmatchedCloseTag)
-		case '>':
-			name := strings.TrimSpace(tag[1:])
-			partial, err := tmpl.parsePartial(name, textResult.padding)
-			if err != nil {
-				return err
-			}
-			tmpl.elems = append(tmpl.elems, partial)
 		case '=':
 			if tag[len(tag)-1] != '=' {
 				return newError(tmpl.curline, ErrInvalidMetaTag)
@@ -773,11 +760,7 @@ func ParseString(data string) (*Template, error) {
 // be used to efficiently render the template multiple times with different data
 // sources.
 func ParseStringRaw(data string, forceRaw bool) (*Template, error) {
-	partials := &FileProvider{
-		Paths: []string{"", " "},
-	}
-
-	return ParseStringPartialsRaw(data, partials, forceRaw)
+	return ParseStringPartialsRaw(data, &FileProvider{}, forceRaw)
 }
 
 // ParseStringPartials compiles a mustache template string, retrieving any
@@ -873,4 +856,33 @@ func RenderInLayoutPartials(data string, layoutData string, partials PartialProv
 	}
 
 	return tmpl.RenderInLayout(layoutTmpl, context...)
+}
+
+func getPartials(partials PartialProvider, name, indent string) (*Template, error) {
+	data, err := partials.Get(name)
+	if err != nil {
+		return nil, err
+	}
+
+	// indent non empty lines
+	r := regexp.MustCompile(`(?m:^(.+)$)`)
+	data = r.ReplaceAllString(data, indent+"$1")
+
+	return ParseStringPartials(data, partials)
+}
+
+// PartialProvider comprises the behaviors required of a struct to be able to provide partials to the mustache rendering
+// engine.
+type PartialProvider interface {
+	// Get accepts the name of a partial and returns the parsed partial, if it could be found; a valid but empty
+	// template, if it could not be found; or nil and error if an error occurred (other than an inability to find
+	// the partial).
+	Get(name string) (string, error)
+}
+
+type FileProvider struct{}
+
+// Get accepts the name of a partial and returns the parsed partial.
+func (fp *FileProvider) Get(name string) (string, error) {
+	return "", nil
 }

@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"os"
-	"path"
 	"strings"
 	"testing"
 )
@@ -265,61 +263,6 @@ func TestMissing(t *testing.T) {
 			t.Errorf("%q expected missing variable error but got %q", test.tmpl, err.Error())
 		}
 	}
-}
-
-func TestFile(t *testing.T) {
-	filename := path.Join(path.Join(os.Getenv("PWD"), "tests"), "test1.mustache")
-	expected := "hello world"
-	output, err := RenderFile(filename, map[string]string{"name": "world"})
-	if err != nil {
-		t.Error(err)
-	} else if output != expected {
-		t.Errorf("testfile expected %q got %q", expected, output)
-	}
-}
-
-func TestFRender(t *testing.T) {
-	filename := path.Join(path.Join(os.Getenv("PWD"), "tests"), "test1.mustache")
-	expected := "hello world"
-	tmpl, err := ParseFile(filename)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var buf bytes.Buffer
-	err = tmpl.FRender(&buf, map[string]string{"name": "world"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	output := buf.String()
-	if output != expected {
-		t.Fatalf("testfile expected %q got %q", expected, output)
-	}
-}
-
-func TestPartial(t *testing.T) {
-	filename := path.Join(path.Join(os.Getenv("PWD"), "tests"), "test2.mustache")
-	expected := "hello world"
-	tmpl, err := ParseFile(filename)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	output, err := tmpl.Render(map[string]string{"Name": "world"})
-	if err != nil {
-		t.Error(err)
-		return
-	} else if output != expected {
-		t.Errorf("testpartial expected %q got %q", expected, output)
-		return
-	}
-
-	expectedTags := []tag{
-		{
-			Type: Partial,
-			Name: "partial",
-		},
-	}
-	compareTags(t, tmpl.Tags(), expectedTags)
 }
 
 /*

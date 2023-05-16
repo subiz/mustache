@@ -8,7 +8,29 @@ import (
 	"testing"
 )
 
+// StaticProvider implements the PartialProvider interface by providing partials drawn from a map, which maps partial
+// name to template contents.
+type StaticProvider struct {
+	Partials map[string]string
+}
+
+// Get accepts the name of a partial and returns the parsed partial.
+func (sp *StaticProvider) Get(name string) (string, error) {
+	if sp.Partials != nil {
+		if data, ok := sp.Partials[name]; ok {
+			return data, nil
+		}
+	}
+
+	return "", nil
+}
+
 var disabledTests = map[string]map[string]struct{}{
+	"partials.json": {}, // prohibited for safety
+	"delimiters.json": {
+		"Partial Inheritence":   struct{}{},
+		"Post-Partial Behavior": struct{}{},
+	},
 	"interpolation.json": {
 		// disabled b/c Go uses "&#34;" in place of "&quot;"
 		// both are valid escapings, and we validate the behavior in mustache_test.go

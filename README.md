@@ -15,6 +15,7 @@
 I forked [hoisie/mustache](https://github.com/hoisie/mustache) because it does not appear to be maintained, and I wanted to add the following functionality:
 
 - Dependencies free
+- Disable the partials feature
 - Update the API to follow the idiomatic Go convention of returning errors (this is a breaking change)
 - Add option to treat missing variables as errors
 
@@ -51,16 +52,12 @@ There are four main methods in this package:
 ```go
 Render(data string, context ...interface{}) (string, error)
 
-RenderFile(filename string, context ...interface{}) (string, error)
-
 ParseString(data string) (*Template, error)
-
-ParseFile(filename string) (*Template, error)
 ```
 
 There are also two additional methods for using layouts (explained below); as well as several more that can provide a custom Partial retrieval.
 
-The Render method takes a string and a data source, which is generally a map or struct, and returns the output string. If the template file contains an error, the return value is a description of the error. There's a similar method, RenderFile, which takes a filename as an argument and uses that for the template contents.
+The Render method takes a string and a data source, which is generally a map or struct, and returns the output string. If the template file contains an error, the return value is a description of the error.
 
 ```go
 data, err := mustache.Render("hello {{c}}", map[string]string{"c": "world"})
@@ -93,7 +90,6 @@ It is a common pattern to include a template file as a "wrapper" for other templ
 ```go
 RenderInLayout(data string, layout string, context ...interface{}) (string, error)
 
-RenderFileInLayout(filename string, layoutFile string, context ...interface{}) (string, error)
 ```
 
 The layout file must have a variable called `{{content}}`. For example, given the following files:
@@ -114,18 +110,6 @@ template.html.mustache:
 ```html
 <h1>Hello World!</h1>
 ```
-
-A call to `RenderFileInLayout("template.html.mustache", "layout.html.mustache", nil)` will produce:
-
-```html
-<html>
-<head><title>Hi</title></head>
-<body>
-<h1>Hello World!</h1>
-</body>
-</html>
-```
-
 ----
 
 ## Custom PartialProvider
@@ -206,4 +190,4 @@ It'll be blank. You either have to use `&Person{"John", "Smith"}`, or call `Name
 - Comments
 - Change delimiter
 - Sections (boolean, enumerable, and inverted)
-- Partials
+- ~~Partials~~
