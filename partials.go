@@ -1,8 +1,6 @@
 package mustache
 
 import (
-	"os"
-	"path"
 	"regexp"
 )
 
@@ -26,44 +24,7 @@ type FileProvider struct {
 
 // Get accepts the name of a partial and returns the parsed partial.
 func (fp *FileProvider) Get(name string) (string, error) {
-	var filename string
-
-	var paths []string
-	if fp.Paths != nil {
-		paths = fp.Paths
-	} else {
-		paths = []string{""}
-	}
-
-	var exts []string
-	if fp.Extensions != nil {
-		exts = fp.Extensions
-	} else {
-		exts = []string{"", ".mustache", ".stache"}
-	}
-
-	for _, p := range paths {
-		for _, e := range exts {
-			name := path.Join(p, name+e)
-			f, err := os.Open(name)
-			if err == nil {
-				filename = name
-				f.Close()
-				break
-			}
-		}
-	}
-
-	if filename == "" {
-		return "", nil
-	}
-
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		return "", err
-	}
-
-	return string(data), nil
+	return "", nil
 }
 
 var _ PartialProvider = (*FileProvider)(nil)
